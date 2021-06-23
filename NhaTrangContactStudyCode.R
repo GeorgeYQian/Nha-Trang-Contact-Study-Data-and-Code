@@ -295,7 +295,7 @@ names(ProbExposureStore_df [1])<- "ctslno"
 gc()
 
 store_PEI_Age %>% 
-  pivot_longer(!c("ctslno","ctagegp", "N"), names_to = "Posterior", values_to = "carriagePrev") %>%
+  pivot_longer(!c("contact_serial_no","ctagegp", "N"), names_to = "Posterior", values_to = "carriagePrev") %>%
   mutate(escape = (1-carriagePrev)^N) %>%
   group_by(contact_serial_no) %>% summarise(exp.prop = 1 - prod(escape)) -> ProbExposureStore_df
 
