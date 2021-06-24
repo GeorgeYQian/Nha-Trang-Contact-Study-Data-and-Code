@@ -4,14 +4,15 @@
 # This file contains the code required to obtain the results shown in the paper
 # (the cubic p-spline fit to age and Bayesian logistic regression)
 #
-# Please do address any questions to me (george): george.qian08@alumni.imperial.ac.uk
+# Please address any questions to me (george): george.qian08@alumni.imperial.ac.uk
 #
-# G Qian, 2021 on behalf of the authors of: "Pneumococcal exposure routes for infants, a nested cross-sectional survey in Nha Trang, Vietnam"
+# G Qian, 2021 on behalf of the authors of: 
+# "Pneumococcal exposure routes for infants, a nested cross-sectional survey in Nha Trang, Vietnam"
 ######################################
 set.seed(31415)
 
 ###################################
-### load libraries
+### Load libraries
 ###################################
 #Import libraries
 library(tidyverse)
@@ -26,14 +27,14 @@ options(dplyr.summarise.inform = FALSE)
 
 
 ###################################
-### load data
+### Load data
 ###################################
-#Load data from the contact study
+# Load data from the contact study
 df_contacts <- 
   read.csv("df_contacts_public.csv") %>%
   mutate(ctagegp = cut(contact_age, 0:100, right = F))
 
-#Load relevant data from the carriage study
+# Load relevant data from the carriage study
 df_infants <- read.csv("df_infants_public.csv")
 
 # CarriageData here uses the data from Carla's Thesis.
@@ -71,9 +72,9 @@ CarriageDataThesis3_ <- CarriageDataThesis3 %>%
   unnest(CI)
 
 
-###################################
+#######################################
 ### Figure 1 (contact age distribution)
-###################################
+#######################################
 
 df_contacts %>%
   group_by(contact_age,contact_time) %>% 
@@ -185,16 +186,13 @@ burn <- jags.samples(mod, variable.names = "p.rep", n.iter = number_iter)
 pred <- coda.samples(mod, "p.rep", n.iter = number_iter)
 post <- coda.samples(mod, c("beta", "beta.00"), n.iter = number_iter)
 
-# model diagnostics
+# Model diagnostics
 statsBeta <- tidy(post)
-#plot(post)
 
-#Now we can plot the spline
+# Now we can plot the spline
 Figure2a <- tidy(pred) %>%
   bind_cols(data.frame(x = x.pred)) %>%
   ggplot(data = ., aes(x = x, y = mean)) +
-  # geom_point(data= CarriageDataThesis3_,
-  #            aes(x = AllAges, y= p),color="red") +
   geom_ribbon(aes(ymin = `2.5%`,
                   ymax = `97.5%`),
               alpha = 0.5,
@@ -231,12 +229,9 @@ Figure2a
 #These will be inputs to the second JAGS model
 
 #For each set of beta parameters in 'post':
-# {Get the formula of the cubic spline
-#  Calculate the carriage prevalence at all 61 ages (0-60)
-#  Calculate PEI (remember, only the prevalence changes across samples of 'post')
-#  Generate df_expFINAL dataframe for each run of for loop
-#  Use as input into the PEI Jags/6
-# }
+#  Calculate the carriage prevalence at all 101 ages (i.e. 0-100) from the cubic spline
+#  Calculate PEI 
+#  Use as input into the PEI Jags
 
 
 pred_prevalence <- 
@@ -273,15 +268,14 @@ Figure2 <-
                     xmax = 10,
                     ymin = .38,
                     ymax = .85)
-ggsave("Figures/Figure2.pdf", unit = "cm", width=20, height=12)                    
-
+ggsave("Figures/Figure2.pdf", unit = "cm", width=20, height=12)                   
 
 
 ###########################################################################
 ### Second Jags Model (Logistic Regression: Y -> Pneumo Carriage, X -> PEI)
 ###########################################################################
 
-#Read data in preparation for Rjags -> collect these in a list called 'jdat'
+# Read data in preparation for Rjags -> collect these in a list called 'jdat'
 
 PEI_av <-
   PEI %>% 
@@ -302,8 +296,10 @@ jdat <-
 
 #Define model
 jcode <- "model{
-	#Likelihood
+
+	#Define Likelihood
 	#As we have assumed a beta distribution for PEI (exp.prop), we need to specify a[i] and b[i] appropriately
+	
 	for (i in 1:length(pneu_carr)){
     pneu_carr[i] ~ dbern(prob_carr[i])
     a[i] <- ((1 - mu[i]) / sigma[i] ^ 2 - 1 / mu[i]) * mu[i] ^ 2
@@ -325,6 +321,7 @@ jcode <- "model{
 
   #If we include beta0, then beta2_mu by definition should be 0 or we get identifiability issues
   beta2_mu <- 0
+  
   #We assume the standard deviation follows a gamma distribution 
   beta2_sigma ~ dgamma(1,1)
 
@@ -353,6 +350,11 @@ tidy(jpos)
 ### Figure 3
 ###########################################################################
 
+
+# Calculate exposure across all age groups 
+# Exposure from any one age group is defined as:
+# sum(number of contacts in age group*P(carriage|age))
+
 exposure <-
   df_contacts %>%
   tibble() %>%
@@ -361,13 +363,15 @@ exposure <-
   pivot_longer(cols = starts_with("post"), names_to = "posterior") %>%
   mutate(ctagegp = cut(contact_age, breaks = c(seq(0,65, by=5),100), right=F)) %>%
   group_by(ctagegp, posterior) %>% summarise(exp = sum(value)) %>%
-  filter(!is.na(ctagegp)) %>% 
+  filter(!is.na(ctagegp)) %>%  #Now obtain all posterior estimates to find confidence intervals
   group_by(posterior) %>% mutate(exp_prop = exp / sum(exp)) %>%
   group_by(ctagegp) %>% summarise(med = median(exp_prop),
                                   lo = quantile(exp_prop, 0.025),
                                   hi = quantile(exp_prop, 0.975))
 s = seq(0,60, by=5)
 ages = c(paste0(s,"-",s+4),"Over 60")
+
+# Plot Figure 3a (proportion of exposure due to every age group)
 
 Figure3a <- 
   exposure %>%
@@ -377,6 +381,9 @@ Figure3a <-
     ylab("Proportion of exposure") + xlab("Age Group") + 
     scale_x_discrete(labels = ages) +
     theme_classic() 
+
+# Hone in on the proportion of exposure due to 0-15 year olds alone
+# (with each year group in a separate bin)
 
 exposure_fine <-
   df_contacts %>%
@@ -390,6 +397,8 @@ exposure_fine <-
   group_by(contact_age) %>% summarise(med = median(exp_prop),
                                   lo = quantile(exp_prop, 0.025),
                                   hi = quantile(exp_prop, 0.975))
+
+# Plot Figure 3b (showing the proportion of exposure due to 0-15 year olds)
 
 Figure3b <- 
   exposure_fine %>%
