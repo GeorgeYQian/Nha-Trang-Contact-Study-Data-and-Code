@@ -348,3 +348,66 @@ jpos = coda.samples(jmod,  c("beta0","beta1","beta2","beta3"), n.iter = mcmc.len
 # show regression coefficients
 tidy(jpos)
 
+
+###########################################################################
+### Figure 3
+###########################################################################
+
+exposure <-
+  df_contacts %>%
+  tibble() %>%
+  select(-c(X, contact_serial_no)) %>%
+  left_join(pred_prevalence, by = "ctagegp") %>%
+  pivot_longer(cols = starts_with("post"), names_to = "posterior") %>%
+  mutate(ctagegp = cut(contact_age, breaks = c(seq(0,65, by=5),100), right=F)) %>%
+  group_by(ctagegp, posterior) %>% summarise(exp = sum(value)) %>%
+  filter(!is.na(ctagegp)) %>% 
+  group_by(posterior) %>% mutate(exp_prop = exp / sum(exp)) %>%
+  group_by(ctagegp) %>% summarise(med = median(exp_prop),
+                                  lo = quantile(exp_prop, 0.025),
+                                  hi = quantile(exp_prop, 0.975))
+s = seq(0,60, by=5)
+ages = c(paste0(s,"-",s+4),"Over 60")
+
+Figure3a <- 
+  exposure %>%
+  ggplot(aes(x = ctagegp, y = med, ymin = lo, ymax = hi)) +
+    geom_bar(stat = "identity", fill = "lightblue") +
+    geom_linerange(color = "Orange", lwd=1.2) + 
+    ylab("Proportion of exposure") + xlab("Age Group") + 
+    scale_x_discrete(labels = ages) +
+    theme_classic() 
+
+exposure_fine <-
+  df_contacts %>%
+  tibble() %>%
+  select(-c(X, contact_serial_no)) %>%
+  left_join(pred_prevalence, by = "ctagegp") %>%
+  pivot_longer(cols = starts_with("post"), names_to = "posterior") %>%
+  group_by(contact_age, posterior) %>% summarise(exp = sum(value)) %>%
+  filter(!is.na(exp)) %>%
+  group_by(posterior) %>% mutate(exp_prop = exp / sum(exp)) %>%
+  group_by(contact_age) %>% summarise(med = median(exp_prop),
+                                  lo = quantile(exp_prop, 0.025),
+                                  hi = quantile(exp_prop, 0.975))
+
+Figure3b <- 
+  exposure_fine %>%
+  filter(contact_age <=15) %>%
+  ggplot(aes(x = contact_age, y = med, ymin = lo, ymax = hi)) +
+    geom_bar(stat = "identity", fill = "lightblue") +
+    geom_linerange(color = "Orange", lwd=1.2) + 
+    ylab("Proportion of\nexposure") + xlab("Age (years)") + 
+    scale_x_continuous(breaks = 0:15) +
+    theme_classic() 
+
+Figure3 <-
+  Figure3a + 
+  annotation_custom(ggplotGrob(Figure3b),
+                    xmin = 4,
+                    xmax = 14,
+                    ymin = .17,
+                    ymax = .5)
+ggsave("Figures/Figure3.pdf", unit = "cm", width=20, height=12)                    
+
+
