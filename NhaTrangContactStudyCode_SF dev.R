@@ -278,7 +278,68 @@ Figure2 <-
                     ymin = .38,
                     ymax = .85)
 ggsave("Figures/Figure2.pdf", unit = "cm", width=20, height=12)                    
-            
+
+
+
+###########################################################################
+### Second Jags Model (Logistic Regression: Y -> Pneumo Carriage, X -> PEI)
+###########################################################################
+
+#Read data in preparation for Rjags -> collect these in a list called 'jdat'
+
+PEI_av <-
+  PEI %>% 
+  group_by(infant_serial_no) %>% summarise(m = mean(PEI, na.rm = T),
+                                           s = sd(PEI, na.rm = T)) %>%
+  left_join(df_infants, by = "infant_serial_no") %>%
+  filter(m>0)
+
+jdat <-
+  list(
+    "pneu_carr" = PEI_av$infant_pneumo_status,
+    "mu" = PEI_av$m,
+    "sigma" = PEI_av$s
+  )
+
+#Define model
+jcode <- "model{
+
+	#Likelihood
+	#As we have assumed a beta distribution for PEI (exp.prop), we need to specify a[i] and b[i] appropriately
+	for (i in 1:length(pneu_carr)){
+    pneu_carr[i] ~ dbern(prob_carr[i])
+    a[i] <- ((1 - mu[i]) / sigma[i] ^ 2 - 1 / mu[i]) * mu[i] ^ 2
+    b[i] <- a[i] * (1 / mu[i] - 1)
+    #Now, exp.prop will take a beta distribution
+    exp.prop[i] ~ dbeta(a[i], b[i])
+    #And finally, specify the logistic regression equation for infant carriage
+    logit(prob_carr[i]) =  beta0 + beta1 * exp.prop[i]
+	}
+
+	#priors
+  beta0 ~ dnorm(0,1)
+  beta1 ~ dnorm(0,1)
+}"
+
+
+#Fit and draw posterior samples
+mcmc.length = 10000
+jmod = jags.model(
+  textConnection(jcode),
+  data = jdat,
+  n.chains = 4,
+  n.adapt = 1000
+)
+update(jmod)
+jpos = coda.samples(jmod, c("beta0", "beta1"), n.iter = mcmc.length)
+plot(jpos) # check convergence
+
+#Show the coefficients of the logistic regression
+print(beta0_est <-
+        jpos[[1]][, "beta0"] %>% quantile(probs = c(.5, .025, .975)))
+print(beta1_est <-
+        jpos[[1]][, "beta1"] %>% quantile(probs = c(.5, .025, .975)))
+
 
 
   
