@@ -70,6 +70,27 @@ CarriageDataThesis3_ <- CarriageDataThesis3 %>%
   ))) %>%
   unnest(CI)
 
+
+###################################
+### Figure 1 (contact age distribution)
+###################################
+
+df_contacts %>%
+  group_by(contact_age,contact_time) %>% 
+  summarise(N = length(contact_age)) %>%
+  ggplot(aes(x = contact_age, 
+             y = N, 
+             fill = factor(contact_time))) +
+  geom_bar(stat="identity")+
+  xlab("Contact Age (years)") + ylab("Number of Contacts") + 
+  scale_fill_brewer(palette = "Accent", 
+                    name = "Contact Time", 
+                    labels = c("Short (<5 minutes)", "Medium (5-60 minutes)", "Long (>60 minutes)")) +  
+  theme_classic() +
+  theme(legend.position = c(0.8, 0.8)) 
+ggsave("Figures/Figure1.pdf", unit = "cm", width=15, height=9)
+
+
 ###################################
 ### First Jags Model (cubic spline)
 ###################################
