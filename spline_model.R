@@ -1,3 +1,5 @@
+# The code here was provided by Sam Clifford
+
 model{
   for (i in 1:n){
     y[i] ~ dbinom(p[i], N[i])
