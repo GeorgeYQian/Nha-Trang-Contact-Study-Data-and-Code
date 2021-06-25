@@ -369,7 +369,7 @@ exposure <-
                                   lo = quantile(exp_prop, 0.025),
                                   hi = quantile(exp_prop, 0.975))
 s = seq(0,60, by=5)
-ages = c(paste0(s,"-",s+4),"Over 60")
+ages = c(paste0(s,"-",s+4),"Over 65")
 
 # Plot Figure 3a (proportion of exposure due to every age group)
 
