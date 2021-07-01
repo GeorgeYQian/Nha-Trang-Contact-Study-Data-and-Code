@@ -22,9 +22,17 @@ This repository provides the source code and related data files used in:
     - the gender of the infant: either male (1) or female (2). This is found under the column heading: gender
     - the number of siblings in the infant's household (under the column heading: siblings)
     - The number of people residing in the infant's household (under the column heading: household_size)
-    - The employment status of the infant's primary caregiver (under the column heading: caregiver_employment): 1 if the caregiver does not work, 2 if he/she works less than 2         days a week, and 3 if he/she works more than 2 days/week    
-    - The most advanced education level achieved by any member of the infant's household (under the column heading: household_education): 1 if primary school has not been              completed, 2 if primary school has been completed, 3 if junior high school has been completed and 4 if any education after junior high has been attained
-    - The most advanced level of mobility that the infant has achieved (under the column heading: infant_mobility): 1 if he/she cannot yet sit, 2 if sitting has been achieved, 3       if he/she can crawl and 4 if he/she can walk
+    - the employment status of the infant's primary caregiver (under the column heading: caregiver_employment): 1 if the caregiver does not work, 2 if he/she works less than 2         days a week, and 3 if he/she works more than 2 days/week    
+    - the most advanced education level achieved by any member of the infant's household (under the column heading: household_education): 1 if primary school has not been              completed, 2 if primary school has been completed, 3 if junior high school has been completed and 4 if any education after junior high has been attained
+    - the most advanced level of mobility that the infant has achieved (under the column heading: infant_mobility): 1 if he/she cannot yet sit, 2 if sitting has been achieved, 3       if he/she can crawl and 4 if he/she can walk
+    - whether the infant's family uses a bicycle (0 if not, 1 if they do). This is found under the column heading: bicycle
+    - whether the infant's family uses a motorbike (0 if not, 1 if they do). This is found under the column heading: motorbike
+    - whether the infant's family uses a car (0 if not, 1 if they do). This is found under the column heading: car
+    - whether the infant's family uses walking as a means of transport (0 if not, 1 if they do). This is found under the column heading: walk
+    - whether the infant's family uses public transport (0 if not, 1 if they do). This is found under the column heading: pub_transport
+    - how often per week the infant's primary caregiver leaves their commune (under the column heading: caregiver_leaves_comm): 0 if he/she does not leave at all, 1 if he/she         leaves 1-2 times per week, 2 if 3-6 times, 3 if 7-14 times and 4 if over 14 times.  
+    - how often per week the infant leaves his/her commune (under the column heading: infant_leaves_comm): 0 if he/she does not leave at all, 1 if he/she leaves 1-2 times per         week, 2 if 3-6 times, 3 if 7-14 times and 4 if over 14 times.  
+    - whether the infant attends nursery (under the column heading: nursery): 0 if he/she does not attend, 1 if he/she attends a public nursery, 2 a private nursery or 3 if they       group together with children of other families
     - the age of the infant in months (infant_age)
     - a number – either 0 or 1 – in infant_pneumo_status, signifying whether the infant is a pneumococcal carrier (1) or is not (0).
     - an ID number representing the commune to which the infant belongs (commune_id)
