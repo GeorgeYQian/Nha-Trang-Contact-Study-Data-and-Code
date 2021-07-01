@@ -19,9 +19,16 @@ This repository provides the source code and related data files used in:
     This csv file contains relevant information about the infants themselves. The columns contain: 
 
     - a serial number for each infant (infant_serial_no), which matches that found in df_contacts_public.csv
+    - the gender of the infant: either male (1) or female (2). This is found under the column heading: gender
+    - the number of siblings in the infant's household (under the column heading: siblings)
+    - The number of people residing in the infant's household (under the column heading: household_size)
+    - The employment status of the infant's primary caregiver (under the column heading: caregiver_employment): 1 if the caregiver does not work, 2 if he/she works less than 2         days a week, and 3 if he/she works more than 2 days/week    
+    - The most advanced education level achieved by any member of the infant's household (under the column heading: household_education): 1 if primary school has not been              completed, 2 if primary school has been completed, 3 if junior high school has been completed and 4 if any education after junior high has been attained
+    - The most advanced level of mobility that the infant has achieved (under the column heading: infant_mobility): 1 if he/she cannot yet sit, 2 if sitting has been achieved, 3       if he/she can crawl and 4 if he/she can walk
     - the age of the infant in months (infant_age)
     - a number – either 0 or 1 – in infant_pneumo_status, signifying whether the infant is a pneumococcal carrier (1) or is not (0).
     - an ID number representing the commune to which the infant belongs (commune_id)
+    
 
 3.	CarriageDataCarlaHalfYear.csv
 
