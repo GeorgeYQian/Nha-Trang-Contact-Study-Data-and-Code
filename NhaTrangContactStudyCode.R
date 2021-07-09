@@ -31,16 +31,16 @@ options(dplyr.summarise.inform = FALSE)
 ###################################
 # Load data from the contact study
 df_contacts <- 
-  read.csv("df_contacts_public.csv") %>%
+  read.csv("contacts_public.csv") %>%
   mutate(ctagegp = cut(contact_age, 0:100, right = F))
 
 # Load relevant data from the carriage study
-df_infants <- read.csv("df_infants_public.csv")
+df_infants <- read.csv("infants_public.csv")
 
 # CarriageData here uses the data from Carla's Thesis.
 #The following rates were calculated using Table 6.1 in Carla Talarico's thesis (page 179),
 #available online: https://deepblue.lib.umich.edu/handle/2027.42/64706)
-CarriageDataThesis3 <- read.csv("CarriageDataCarlaHalfYear.csv")
+CarriageDataThesis3 <- read.csv("Talarico.csv")
 
 # Carriage prevalence observed in the trial
 NTrang4thUnder2 <- 
