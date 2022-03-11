@@ -187,13 +187,18 @@ Figure2a <- tidy(pred) %>%
     xlab("Age") +
     theme_classic() +
     ylab("Prevalence") +
-    scale_x_continuous(trans = "sqrt", #we will use a square root scale on the x-axis to make the lower ages more prominent
-                       breaks = c(1:10) ^ 2) +
-    geom_point(data = data.frame(x = knots, mean = 0), color = "grey") + xlab("Age") +
+    #we will use a square root scale on the x-axis to make the lower ages more prominent
+    scale_x_continuous(trans = "sqrt",
+                       breaks = c(0:10) ^ 2) +
+    geom_point(data = data.frame(x = knots, mean = 0),
+               color = "grey") +
+    xlab("Age") +
     geom_point(data = NTrang4thUnder2,
                aes(age, carriageR),
                colour = "darkgreen",
-               size = 3) + scale_fill_discrete(breaks = c("trt1", "ctrl", "trt2")) + labs(y = "Carriage Prevalence", x = "Age (years)") 
+               size = 3) + 
+    scale_fill_discrete(breaks = c("trt1", "ctrl", "trt2")) + 
+    labs(y = "Carriage Prevalence", x = "Age (years)") 
 
 Figure2a
 
