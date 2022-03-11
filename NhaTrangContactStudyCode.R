@@ -19,11 +19,20 @@ library(tidyverse)
 library(rjags)
 library(binom)
 library(runjags)
-library(mmcc)
 library(splines)
 library(reshape2)
 library(ggplot2)
 options(dplyr.summarise.inform = FALSE)
+
+if (!require(mmcc)){
+    prompt <- menu(c("Yes", "No"), title="Do you wish to install the mmcc package from github?")
+    
+    if (prompt == 1L){
+        remotes::install_github("njtierney/mmcc")
+        library(mmcc)
+    }
+    
+}
 
 
 ###################################
