@@ -84,7 +84,8 @@ CarriageDataThesis3_ <- CarriageDataThesis3 %>%
 ### Figure 1 (contact age distribution)
 #######################################
 
-df_contacts %>%
+Figure1 <- df_contacts %>%
+    mutate(contact_age = floor(contact_age)) %>%
     group_by(contact_age,contact_time) %>% 
     summarise(N = length(contact_age)) %>%
     ggplot(aes(x = contact_age, 
@@ -102,7 +103,7 @@ df_contacts %>%
     theme_classic() +
     theme(legend.position = c(0.8, 0.8)) 
 
-ggsave("Figures/Figure1.pdf", unit = "cm", width=15, height=9)
+ggsave("Figures/Figure1.pdf", plot = Figure1, unit = "cm", width=15, height=9)
 
 
 ###################################
