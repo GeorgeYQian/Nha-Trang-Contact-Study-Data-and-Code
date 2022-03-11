@@ -22,6 +22,8 @@ library(runjags)
 library(splines)
 library(reshape2)
 library(ggplot2)
+library(tidyr)
+library(mmcc)
 options(dplyr.summarise.inform = FALSE)
 
 if (!require(mmcc)){
