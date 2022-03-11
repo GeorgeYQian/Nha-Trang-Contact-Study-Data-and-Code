@@ -226,20 +226,37 @@ PEI <-
     df_contacts %>%
     tibble() %>%
     select(-c(X, contact_serial_no, contact_age)) %>%
-    left_join(pred_prevalence, by = "ctagegp") %>%
-    pivot_longer(cols = starts_with("post"), names_to = "posterior") %>%
+    left_join(pivot_longer(pred_prevalence,
+                           cols = starts_with("post"),
+                           names_to = "posterior"),
+              by = "ctagegp") %>%
+    mutate(posterior = parse_number(posterior)) %>%
     group_by(infant_serial_no, posterior) %>% summarise(PEI = 1 - prod(1-value)) 
 
-Figure2b <- 
-    PEI %>%
-    left_join(df_infants[,c("infant_serial_no","infant_pneumo_status")], by = "infant_serial_no") %>%
+PEI_summary_by_carrier_status <- PEI %>%
+    left_join(df_infants[,c("infant_serial_no","infant_pneumo_status")],
+              by = "infant_serial_no") %>%
     filter(!is.na(infant_pneumo_status)) %>%
-    ggplot(aes(x = as.factor(infant_pneumo_status), y = PEI)) +
-    geom_violin(fill="lightblue") +
-    geom_boxplot(width=.07, fill="orange") +
-    ylab("PEI value") + xlab("") +
-    scale_y_continuous(labels = scales::percent) +
-    scale_x_discrete(labels=c("0" = "non-carriers", "1" = "carriers")) +
+    mutate(infant_pneumo_status = ifelse(infant_pneumo_status == 1L,
+                                         "Carriers",
+                                         "Non-carriers")) %>%
+    group_by_at(.vars = vars(-c(posterior, PEI))) %>%
+    nest %>%
+    mutate(Q = map(data, ~quantile(.x$PEI, c(0.025,
+                                             0.5,
+                                             0.975), na.rm = T))) %>%
+    unnest_wider(Q) %>%
+    ungroup
+
+Figure2b <- 
+    PEI_summary_by_carrier_status %>%
+    ggplot(aes(x = as.factor(infant_pneumo_status), y = `50%`)) +
+    geom_violin(fill="grey80",
+                color = NA) +
+    geom_boxplot(width=.07, fill="white") +
+    ylab("Median PEI value") + 
+    xlab("") +
+    scale_y_continuous(labels = scales::percent, limits = c(0,1)) +
     theme_classic() 
 
 Figure2 <-
@@ -249,6 +266,7 @@ Figure2 <-
                       xmax = 10,
                       ymin = .38,
                       ymax = .85)
+
 ggsave("Figures/Figure2.pdf", unit = "cm", width=20, height=12)                   
 
 
