@@ -21,6 +21,7 @@ library(binom)
 library(runjags)
 library(splines)
 library(reshape2)
+library(gghalves)
 options(dplyr.summarise.inform = FALSE)
 
 if (!require(mmcc)){
@@ -184,7 +185,7 @@ Figure2a <- tidy(pred) %>%
                    ymax = U,
                    y = p
                )) +
-    xlab("Age") +
+    xlab("Age of infant (years)") +
     theme_classic() +
     ylab("Prevalence") +
     #we will use a square root scale on the x-axis to make the lower ages more prominent
@@ -199,8 +200,6 @@ Figure2a <- tidy(pred) %>%
                size = 3) + 
     scale_fill_discrete(breaks = c("trt1", "ctrl", "trt2")) + 
     labs(y = "Carriage Prevalence", x = "Age (years)") 
-
-Figure2a
 
 
 #####################
@@ -249,16 +248,35 @@ PEI_summary_by_carrier_status <- PEI %>%
     unnest_wider(Q) %>%
     ungroup
 
-Figure2b <- 
-    PEI_summary_by_carrier_status %>%
-    ggplot(aes(x = as.factor(infant_pneumo_status), y = `50%`)) +
-    geom_violin(fill="grey80",
-                color = NA) +
-    geom_boxplot(width=.07, fill="white") +
-    ylab("Median PEI value") + 
-    xlab("") +
-    scale_y_continuous(labels = scales::percent, limits = c(0,1)) +
-    theme_classic() 
+Figure2b <- PEI_av %>%
+    filter(!is.na(infant_pneumo_status)) %>%
+    mutate(
+        infant_age_months = factor(infant_age_months),
+        infant_age_months = fct_recode(infant_age_months, "12+" = "12",
+                                       "12+" = "13"),
+        infant_pneumo_status = ifelse(infant_pneumo_status == 1L,
+                                      "Carriers",
+                                      "Non-carriers")) %>%
+    
+    {ggplot(data = .,
+            aes(x = factor(infant_age_months),
+                y = m)) +
+            geom_half_violin(data = filter(., infant_pneumo_status == "Non-carriers"),
+                             aes(fill = "Non-carriers"),
+                             color  = NA, side = 'l') +
+            geom_half_violin(data = filter(., infant_pneumo_status == "Carriers"),
+                             aes(fill = "Carriers"),
+                             color  = NA, side = 'r')} +
+    theme_classic() +
+    scale_y_continuous(limits = c(0,1),
+                       labels = scales::percent,
+                       name = "Mean PEI") +
+    xlab("Age of infant (years)") +
+    scale_fill_manual(name = NULL,
+                      values = c("Non-carriers" = "#BCBDDC",
+                                 "Carriers"     = "#756BB1")) +
+    theme(legend.position = 'top')
+
 
 Figure2 <-
     Figure2a + 
