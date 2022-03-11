@@ -310,8 +310,8 @@ jcode <- "model{
     logit(prob_carr[i]) =  beta0 + beta1 * exp.prop[i] + beta2[commune[i]] + beta3 * age[i]
 	}
 	#Define our priors
-  beta0 ~ dnorm(0,1)
-  beta1 ~ dnorm(0,1)
+  beta0 ~ dnorm(0,1e-3)
+  beta1 ~ dnorm(0,1e-3)
   
   #There are 27 communes that we include in the contact study and so...
   
@@ -323,10 +323,10 @@ jcode <- "model{
   beta2_mu <- 0
   
   #We assume the standard deviation follows a gamma distribution 
-  beta2_sigma ~ dgamma(1,1)
+  beta2_sigma ~ dgamma(2,2)
 
   #Prior for beta3 (coefficient of infant age)
-  beta3 ~ dnorm(0,1)
+  beta3 ~ dnorm(0,1e-3)
   
 }"
 
@@ -339,7 +339,7 @@ jmod = jags.model(
     n.chains = 4,
     n.adapt = 1000
 )
-update(jmod)
+# update(jmod) # what's this line for?
 jpos = coda.samples(jmod,  c("beta0","beta1","beta2","beta3"), n.iter = mcmc.length)
 
 # show regression coefficients
@@ -366,21 +366,12 @@ exposure <-
     filter(!is.na(ctagegp)) %>%  #Now obtain all posterior estimates to find confidence intervals
     group_by(posterior) %>% mutate(exp_prop = exp / sum(exp)) %>%
     group_by(ctagegp) %>% summarise(med = median(exp_prop),
-                                    lo = quantile(exp_prop, 0.025),
-                                    hi = quantile(exp_prop, 0.975))
+                                    lo  = quantile(exp_prop, 0.025),
+                                    hi  = quantile(exp_prop, 0.975))
+
 s = seq(0,60, by=5)
+
 ages = c(paste0(s,"-",s+4),"Over 65")
-
-# Plot Figure 3a (proportion of exposure due to every age group)
-
-Figure3a <- 
-    exposure %>%
-    ggplot(aes(x = ctagegp, y = med, ymin = lo, ymax = hi)) +
-    geom_bar(stat = "identity", fill = "lightblue") +
-    geom_linerange(color = "Orange", lwd=1.2) + 
-    ylab("Proportion of exposure") + xlab("Age Group") + 
-    scale_x_discrete(labels = ages) +
-    theme_classic() 
 
 # Hone in on the proportion of exposure due to 0-15 year olds alone
 # (with each year group in a separate bin)
@@ -398,25 +389,40 @@ exposure_fine <-
                                         lo = quantile(exp_prop, 0.025),
                                         hi = quantile(exp_prop, 0.975))
 
+
+# Plot Figure 3a (proportion of exposure due to every age group)
+
+Figure3a <- 
+    exposure %>%
+    ggplot(aes(x = ctagegp, y = med, ymin = lo, ymax = hi)) +
+    geom_bar(stat = "identity", fill = "#9E9AC8", color = 'black') +
+    geom_linerange(color = "black", lwd=1.2) + 
+    ylab("Proportion of exposure") + xlab("Age (years)") + 
+    scale_x_discrete(labels = ages) +
+    theme_classic() +
+    theme(axis.text.x = element_text(vjust = 1, hjust = 1, angle = 45))
+
+
 # Plot Figure 3b (showing the proportion of exposure due to 0-15 year olds)
 
 Figure3b <- 
     exposure_fine %>%
-    filter(contact_age <=15) %>%
+    filter(contact_age < 15) %>%
     ggplot(aes(x = contact_age, y = med, ymin = lo, ymax = hi)) +
-    geom_bar(stat = "identity", fill = "lightblue") +
-    geom_linerange(color = "Orange", lwd=1.2) + 
-    ylab("Proportion of\nexposure") + xlab("Age (years)") + 
-    scale_x_continuous(breaks = 0:15) +
-    theme_classic() 
+    geom_bar(stat = "identity", fill = "#9E9AC8", color = 'black') +
+    geom_linerange(color = "black", lwd=1.2) + 
+    scale_x_continuous(breaks = 0:14) +
+    theme_classic(base_size = 8) +
+    theme(axis.title = element_blank())
 
 Figure3 <-
     Figure3a + 
     annotation_custom(ggplotGrob(Figure3b),
                       xmin = 4,
                       xmax = 14,
-                      ymin = .17,
-                      ymax = .5)
-ggsave("Figures/Figure3.pdf", unit = "cm", width=20, height=12)                    
+                      ymin = .2,
+                      ymax = .55)
+
+ggsave("Figures/Figure3.pdf", plot = Figure3, unit = "cm", width=15, height=9)                    
 
 
