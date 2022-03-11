@@ -265,10 +265,10 @@ Figure2 <-
     annotation_custom(ggplotGrob(Figure2b),
                       xmin = 3.1,
                       xmax = 10,
-                      ymin = .38,
-                      ymax = .85)
+                      ymin = .35,
+                      ymax = .95)
 
-ggsave("Figures/Figure2.pdf", unit = "cm", width=20, height=12)                   
+ggsave("Figures/Figure2.pdf", plot = Figure2, unit = "cm", width=15, height=9)                   
 
 
 ###########################################################################
