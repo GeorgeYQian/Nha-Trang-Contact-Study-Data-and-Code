@@ -22,6 +22,7 @@ library(runjags)
 library(splines)
 library(reshape2)
 library(gghalves)
+library(knitr)
 options(dplyr.summarise.inform = FALSE)
 
 if (!require(mmcc)){
@@ -443,4 +444,20 @@ Figure3 <-
 
 ggsave("Figures/Figure3.pdf", plot = Figure3, unit = "cm", width=15, height=9)                    
 
+## Mann-Whitney U tests of PEI by infant age
+
+PEI_summary_by_carrier_status %>% 
+    left_join(select(PEI_av, infant_serial_no, infant_age_months)) %>%
+    select(infant_pneumo_status, `50%`, Age = infant_age_months) %>%
+    group_by(infant_pneumo_status, Age) %>%
+    nest %>%
+    spread(infant_pneumo_status, data) %>%
+    mutate(mwu = map2(.x = Carriers,
+                      .y = `Non-carriers`,
+                      .f = ~wilcox.test(x = .x$`50%`, y = .y$`50%`))) %>%
+    transmute(p = map_dbl(.x = mwu, 'p.value')) %>%
+    mutate(Sig. = cut(p,
+                      c(0,0.001, 0.01, 0.05, 0.1, 1),
+                      labels = c("***", "**", "*", ".", ""))) %>%
+    knitr::kable(digits = 3, format = 'simple')
 
